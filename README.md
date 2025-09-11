@@ -120,15 +120,34 @@ Los colores se pueden modificar en `server/index.js` en la sección de carreras:
 ### Noticias
 Las noticias se pueden agregar/modificar en `server/index.js` en la ruta `/api/noticias`.
 
-## 🤖 Chatbot
+## 🤖 Chatbot con Gemini AI
 
-El chatbot incluye respuestas predefinidas para:
-- Saludos
-- Horarios de atención
-- Información de carreras
-- Datos de contacto
+El chatbot está integrado con Google Gemini AI para proporcionar respuestas inteligentes y contextuales.
 
-Se puede expandir agregando más respuestas en `server/index.js`.
+### Configuración del Chatbot
+
+1. **Obtener API Key de Gemini**:
+   - Ve a [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Crea una nueva API key
+   - Copia la clave generada
+
+2. **Configurar variable de entorno**:
+   ```bash
+   # En la carpeta client, crear archivo .env
+   cd client
+   echo "REACT_APP_GEMINI_API_KEY=tu_api_key_aqui" > .env
+   ```
+
+3. **Reiniciar la aplicación**:
+   ```bash
+   npm run dev
+   ```
+
+### Características del Chatbot
+- Respuestas inteligentes usando Gemini 1.5 Flash
+- Conocimiento específico sobre UNLu
+- Respuestas contextuales y naturales
+- Manejo de errores robusto
 
 ## 📄 Licencia
 

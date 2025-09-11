@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Cpu } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,9 @@ const Chatbot = () => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
+  // Configurar Gemini AI
+  const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyBvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQ');
+
   const quickReplies = [
     { text: "Hola", icon: "👋" },
     { text: "Horarios", icon: "🕒" },
@@ -26,44 +30,32 @@ const Chatbot = () => {
     { text: "Ayuda", icon: "❓" }
   ];
 
-  // Respuestas predefinidas del chatbot
-  const getBotResponse = (message) => {
-    const msg = message.toLowerCase();
-    
-    if (msg.includes('hola') || msg.includes('hi') || msg.includes('buenas')) {
-      return "¡Hola! 👋 Soy Lujito, tu asistente virtual de UNLujo. Estoy aquí para ayudarte con información sobre la universidad, carreras, horarios y más. ¿En qué puedo asistirte?";
+  // Función para obtener respuesta de Gemini
+  const getGeminiResponse = async (message) => {
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      
+      const prompt = `Eres Lujito, el asistente virtual de la Universidad Nacional de Luján (UNLu). 
+      
+Información sobre UNLu:
+- Universidad ubicada en Luján, Buenos Aires, Argentina
+- Fundada en 1972
+- Carreras: Lic. en Sistemas de Información (LSI), Lic. en Trabajo Social (LTS), Lic. en Enfermería (LE)
+- Centro de Estudiantes: CODES++ (para Sistemas)
+- Contacto: centroestudiantes@unlujo.edu.ar, (011) 1234-5678
+- Horarios: Lunes a Viernes 8:00-18:00, Sábados 8:00-12:00
+
+Responde de manera amigable, útil y concisa. Usa emojis apropiados. Si no sabes algo específico sobre UNLu, admítelo pero ofrece ayuda general sobre universidad o educación.
+
+Pregunta del usuario: ${message}`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      console.error('Error con Gemini:', error);
+      return "Lo siento, no pude procesar tu consulta en este momento. ¿Podrías intentar de nuevo?";
     }
-    
-    if (msg.includes('horario') || msg.includes('horarios')) {
-      return "📅 Los horarios de atención de la universidad son:\n• Lunes a Viernes: 8:00 - 18:00\n• Sábados: 8:00 - 12:00\n• Secretaría Académica: 8:00 - 16:00\n• Biblioteca: 8:00 - 20:00";
-    }
-    
-    if (msg.includes('carrera') || msg.includes('carreras') || msg.includes('estudiar')) {
-      return "🎓 En UNLujo tenemos 3 carreras principales:\n\n• **Lic. en Sistemas de Información (LSI)**\n• **Lic. en Trabajo Social (LTS)**\n• **Lic. en Enfermería (LE)**\n\n¡Puedes explorar cada una en la página principal!";
-    }
-    
-    if (msg.includes('contacto') || msg.includes('telefono') || msg.includes('email')) {
-      return "📞 **Información de Contacto:**\n\n• Email: centroestudiantes@unlujo.edu.ar\n• Teléfono: (011) 1234-5678\n• Dirección: Ruta 5 y Avenida Constitución, Luján\n• Horarios: Lunes a Viernes 8:00 - 18:00";
-    }
-    
-    if (msg.includes('comunidad') || msg.includes('estudiantes') || msg.includes('codes')) {
-      return "👥 **Comunidad Estudiantil:**\n\n• **CODES++** - Centro de Estudiantes de Sistemas\n• Eventos y actividades estudiantiles\n• Grupos de estudio y hackathons\n• Recursos académicos compartidos\n\n¡Únete a nuestra comunidad activa!";
-    }
-    
-    if (msg.includes('unlujo') || msg.includes('universidad') || msg.includes('unlu')) {
-      return "🏛️ **Universidad Nacional de Luján (UNLu):**\n\n• Fundada en 1972\n• Ubicada en Luján, Buenos Aires\n• Carreras de grado y posgrado\n• Investigación y extensión universitaria\n• Comunidad estudiantil activa y comprometida";
-    }
-    
-    if (msg.includes('ayuda') || msg.includes('help') || msg.includes('soporte')) {
-      return "❓ **¿Necesitas ayuda?**\n\nPuedo ayudarte con:\n• Información sobre carreras\n• Horarios de atención\n• Datos de contacto\n• Eventos y actividades\n• Recursos académicos\n\n¡Solo pregunta! 😊";
-    }
-    
-    if (msg.includes('gracias') || msg.includes('thanks')) {
-      return "¡De nada! 😊 Me alegra poder ayudarte. Si tienes más preguntas, no dudes en consultarme. ¡Estoy aquí para asistirte!";
-    }
-    
-    // Respuesta por defecto
-    return "🤔 Interesante pregunta. Aunque soy un asistente básico, puedo ayudarte con información sobre:\n\n• Carreras disponibles\n• Horarios de atención\n• Información de contacto\n• Eventos estudiantiles\n\n¿Hay algo específico que te gustaría saber?";
   };
 
   // Scroll automático al final de los mensajes
@@ -118,9 +110,9 @@ const Chatbot = () => {
     };
     setMessages(prev => [...prev, typingMessage]);
 
-    // Simular delay de respuesta
-    setTimeout(() => {
-      const botResponse = getBotResponse(messageToSend);
+    // Obtener respuesta de Gemini
+    try {
+      const botResponse = await getGeminiResponse(messageToSend);
       
       // Remover mensaje de escritura y agregar respuesta real
       setIsTyping(false);
@@ -138,7 +130,19 @@ const Chatbot = () => {
       setTimeout(() => {
         typeMessage(botResponse, Date.now() + 2);
       }, 500);
-    }, 1000); // Simular 1 segundo de "procesamiento"
+    } catch (error) {
+      console.error('Error obteniendo respuesta:', error);
+      setIsTyping(false);
+      setMessages(prev => {
+        const withoutTyping = prev.filter(msg => !msg.isTyping);
+        const errorMessage = {
+          id: Date.now() + 2,
+          text: "Lo siento, hubo un error al procesar tu consulta. ¿Podrías intentar de nuevo?",
+          isBot: true
+        };
+        return [...withoutTyping, errorMessage];
+      });
+    }
   };
 
   const handleKeyPress = (e) => {

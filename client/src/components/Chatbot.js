@@ -11,7 +11,7 @@ const Chatbot = () => {
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -69,6 +69,7 @@ const Chatbot = () => {
     setInputMessage('');
 
     // Mostrar indicador de escritura
+    setIsTyping(true);
     const typingMessage = {
       id: Date.now() + 1,
       text: "",
@@ -89,6 +90,7 @@ const Chatbot = () => {
       const data = await response.json();
       
       // Remover mensaje de escritura y agregar respuesta real
+      setIsTyping(false);
       setMessages(prev => {
         const withoutTyping = prev.filter(msg => !msg.isTyping);
         const botMessage = {
@@ -111,6 +113,7 @@ const Chatbot = () => {
         text: "Lo siento, hubo un error. Por favor intenta de nuevo.",
         isBot: true
       };
+      setIsTyping(false);
       setMessages(prev => {
         const withoutTyping = prev.filter(msg => !msg.isTyping);
         return [...withoutTyping, errorMessage];

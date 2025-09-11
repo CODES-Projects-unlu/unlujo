@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, BookOpen, Heart, Laptop, GraduationCap, Sparkles, Globe, Trophy, Lightbulb, Star, Zap } from 'lucide-react';
+import { ArrowRight, Users, BookOpen, Heart, Laptop, GraduationCap, Sparkles, Globe, Star, Zap } from 'lucide-react';
 import Carousel from './Carousel';
 
 const Dashboard = ({ carreras }) => {
@@ -21,7 +21,6 @@ const Dashboard = ({ carreras }) => {
   const formatCarreraName = (nombre) => {
     return nombre.replace(/Licenciatura en/g, 'Lic. en');
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">

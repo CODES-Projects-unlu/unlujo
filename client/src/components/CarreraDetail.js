@@ -209,16 +209,16 @@ const CarreraDetail = ({ carreras }) => {
                   Enlaces Útiles
                 </h3>
                 <div className="space-y-2">
-                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left">
+                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left w-full text-left">
                     Plan de Estudios
                   </button>
-                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left">
+                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left w-full text-left">
                     Calendario Académico
                   </button>
-                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left">
+                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left w-full text-left">
                     Reglamento Estudiantil
                   </button>
-                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left">
+                  <button className="block text-blue-600 hover:text-blue-800 transition-colors text-left w-full text-left">
                     Biblioteca Virtual
                   </button>
                 </div>

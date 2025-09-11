@@ -24,9 +24,6 @@ const Chatbot = () => {
     { text: "Horarios", icon: "🕒" },
     { text: "Carreras", icon: "🎓" },
     { text: "Contacto", icon: "📞" },
-    { text: "Comunidad", icon: "👥" },
-    { text: "UNLujo", icon: "🏛️" },
-    { text: "Robot", icon: "🤖" },
     { text: "Ayuda", icon: "❓" }
   ];
 
@@ -173,7 +170,7 @@ Pregunta del usuario: ${message}`;
           </div>
         </button>
       ) : (
-        <div className="bg-white rounded-2xl shadow-2xl w-80 h-96 flex flex-col">
+        <div className="bg-white rounded-2xl shadow-2xl w-96 h-[500px] flex flex-col">
           {/* Header */}
           <div 
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-2xl flex justify-between items-center"
@@ -200,7 +197,7 @@ Pregunta del usuario: ${message}`;
           </div>
 
           {/* Messages */}
-          <div ref={messagesContainerRef} className="messages-container flex-1 p-4 overflow-y-auto space-y-3">
+          <div ref={messagesContainerRef} className="messages-container flex-1 p-4 overflow-y-auto space-y-3 min-h-0">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -232,23 +229,23 @@ Pregunta del usuario: ${message}`;
           </div>
 
           {/* Quick Replies */}
-          <div className="px-4 py-2 border-t bg-gray-50">
-            <div className="flex flex-wrap gap-2">
+          <div className="px-3 py-2 border-t bg-gray-50">
+            <div className="flex flex-wrap gap-1.5">
               {quickReplies.map((reply, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickReply(reply.text)}
-                  className="quick-reply-button flex items-center space-x-1 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                  className="quick-reply-button flex items-center space-x-1 px-2 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
                 >
-                  <span>{reply.icon}</span>
-                  <span>{reply.text}</span>
+                  <span className="text-xs">{reply.icon}</span>
+                  <span className="text-xs">{reply.text}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t">
+          <div className="p-3 border-t">
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -256,7 +253,7 @@ Pregunta del usuario: ${message}`;
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Escribe tu mensaje..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               <button
                 onClick={handleSendMessage}

@@ -35,21 +35,44 @@ const Carousel = ({ items, renderItem, title, className = "", itemsPerView = { m
 
   // Touch events para móvil
   const handleTouchStart = (e) => {
+    if (!isMobile) return;
     setIsDragging(true);
-    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft);
-    setScrollLeft(carouselRef.current.scrollLeft);
+    setStartX(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || !isMobile) return;
     e.preventDefault();
-    const x = e.touches[0].pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    carouselRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e) => {
+    if (!isDragging || !isMobile) return;
+    
+    const endX = e.changedTouches[0].clientX;
+    const diffX = startX - endX;
+    const threshold = 50; // Mínimo de píxeles para considerar un swipe
+    
+    if (Math.abs(diffX) > threshold) {
+      if (diffX > 0) {
+        // Swipe izquierda - siguiente slide
+        goToNext();
+      } else {
+        // Swipe derecha - slide anterior
+        goToPrevious();
+      }
+    }
+    
     setIsDragging(false);
+  };
+
+  const goToNext = () => {
+    const maxIndex = getMaxIndex();
+    setCurrentIndex(prev => prev < maxIndex ? prev + 1 : 0);
+  };
+
+  const goToPrevious = () => {
+    const maxIndex = getMaxIndex();
+    setCurrentIndex(prev => prev > 0 ? prev - 1 : maxIndex);
   };
 
 
@@ -72,9 +95,10 @@ const Carousel = ({ items, renderItem, title, className = "", itemsPerView = { m
       <div className="relative overflow-hidden rounded-2xl" style={{ width: '100%' }}>
         <div
           ref={carouselRef}
-          className="flex transition-transform duration-500 ease-in-out"
+          className={`flex transition-transform duration-500 ease-in-out ${isMobile ? 'touch-pan-x' : ''}`}
           style={{ 
-            transform: `translateX(-${currentIndex * (100 / getItemsPerView())}%)`
+            transform: `translateX(-${currentIndex * (100 / getItemsPerView())}%)`,
+            touchAction: isMobile ? 'pan-x' : 'auto'
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}

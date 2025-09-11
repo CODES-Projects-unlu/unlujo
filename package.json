@@ -1,0 +1,22 @@
+{
+  "name": "unlujo-pwa",
+  "version": "1.0.0",
+  "description": "UNLujo - PWA para la Comunidad Estudiantil UNLu",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "setup": "npm run install-all",
+    "start-dev": "start cmd /k \"cd server && npm run dev\" && start cmd /k \"cd client && npm start\""
+  },
+  "keywords": ["pwa", "react", "node", "comunidad-estudiantil", "unlu"],
+  "author": "UNLujo - Comunidad Estudiantil UNLu",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

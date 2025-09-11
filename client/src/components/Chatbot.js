@@ -26,6 +26,46 @@ const Chatbot = () => {
     { text: "Ayuda", icon: "❓" }
   ];
 
+  // Respuestas predefinidas del chatbot
+  const getBotResponse = (message) => {
+    const msg = message.toLowerCase();
+    
+    if (msg.includes('hola') || msg.includes('hi') || msg.includes('buenas')) {
+      return "¡Hola! 👋 Soy Lujito, tu asistente virtual de UNLujo. Estoy aquí para ayudarte con información sobre la universidad, carreras, horarios y más. ¿En qué puedo asistirte?";
+    }
+    
+    if (msg.includes('horario') || msg.includes('horarios')) {
+      return "📅 Los horarios de atención de la universidad son:\n• Lunes a Viernes: 8:00 - 18:00\n• Sábados: 8:00 - 12:00\n• Secretaría Académica: 8:00 - 16:00\n• Biblioteca: 8:00 - 20:00";
+    }
+    
+    if (msg.includes('carrera') || msg.includes('carreras') || msg.includes('estudiar')) {
+      return "🎓 En UNLujo tenemos 3 carreras principales:\n\n• **Lic. en Sistemas de Información (LSI)**\n• **Lic. en Trabajo Social (LTS)**\n• **Lic. en Enfermería (LE)**\n\n¡Puedes explorar cada una en la página principal!";
+    }
+    
+    if (msg.includes('contacto') || msg.includes('telefono') || msg.includes('email')) {
+      return "📞 **Información de Contacto:**\n\n• Email: centroestudiantes@unlujo.edu.ar\n• Teléfono: (011) 1234-5678\n• Dirección: Ruta 5 y Avenida Constitución, Luján\n• Horarios: Lunes a Viernes 8:00 - 18:00";
+    }
+    
+    if (msg.includes('comunidad') || msg.includes('estudiantes') || msg.includes('codes')) {
+      return "👥 **Comunidad Estudiantil:**\n\n• **CODES++** - Centro de Estudiantes de Sistemas\n• Eventos y actividades estudiantiles\n• Grupos de estudio y hackathons\n• Recursos académicos compartidos\n\n¡Únete a nuestra comunidad activa!";
+    }
+    
+    if (msg.includes('unlujo') || msg.includes('universidad') || msg.includes('unlu')) {
+      return "🏛️ **Universidad Nacional de Luján (UNLu):**\n\n• Fundada en 1972\n• Ubicada en Luján, Buenos Aires\n• Carreras de grado y posgrado\n• Investigación y extensión universitaria\n• Comunidad estudiantil activa y comprometida";
+    }
+    
+    if (msg.includes('ayuda') || msg.includes('help') || msg.includes('soporte')) {
+      return "❓ **¿Necesitas ayuda?**\n\nPuedo ayudarte con:\n• Información sobre carreras\n• Horarios de atención\n• Datos de contacto\n• Eventos y actividades\n• Recursos académicos\n\n¡Solo pregunta! 😊";
+    }
+    
+    if (msg.includes('gracias') || msg.includes('thanks')) {
+      return "¡De nada! 😊 Me alegra poder ayudarte. Si tienes más preguntas, no dudes en consultarme. ¡Estoy aquí para asistirte!";
+    }
+    
+    // Respuesta por defecto
+    return "🤔 Interesante pregunta. Aunque soy un asistente básico, puedo ayudarte con información sobre:\n\n• Carreras disponibles\n• Horarios de atención\n• Información de contacto\n• Eventos estudiantiles\n\n¿Hay algo específico que te gustaría saber?";
+  };
+
   // Scroll automático al final de los mensajes
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,16 +118,9 @@ const Chatbot = () => {
     };
     setMessages(prev => [...prev, typingMessage]);
 
-    try {
-      const response = await fetch('http://localhost:5000/api/chatbot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ mensaje: messageToSend }),
-      });
-
-      const data = await response.json();
+    // Simular delay de respuesta
+    setTimeout(() => {
+      const botResponse = getBotResponse(messageToSend);
       
       // Remover mensaje de escritura y agregar respuesta real
       setIsTyping(false);
@@ -95,7 +128,7 @@ const Chatbot = () => {
         const withoutTyping = prev.filter(msg => !msg.isTyping);
         const botMessage = {
           id: Date.now() + 2,
-          text: data.respuesta,
+          text: botResponse,
           isBot: true
         };
         return [...withoutTyping, botMessage];
@@ -103,22 +136,9 @@ const Chatbot = () => {
 
       // Iniciar efecto de escritura
       setTimeout(() => {
-        typeMessage(data.respuesta, Date.now() + 2);
+        typeMessage(botResponse, Date.now() + 2);
       }, 500);
-
-    } catch (error) {
-      console.error('Error enviando mensaje:', error);
-      const errorMessage = {
-        id: Date.now() + 2,
-        text: "Lo siento, hubo un error. Por favor intenta de nuevo.",
-        isBot: true
-      };
-      setIsTyping(false);
-      setMessages(prev => {
-        const withoutTyping = prev.filter(msg => !msg.isTyping);
-        return [...withoutTyping, errorMessage];
-      });
-    }
+    }, 1000); // Simular 1 segundo de "procesamiento"
   };
 
   const handleKeyPress = (e) => {

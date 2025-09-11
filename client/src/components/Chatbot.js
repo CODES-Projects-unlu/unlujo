@@ -229,13 +229,13 @@ Pregunta del usuario: ${message}`;
           </div>
 
           {/* Quick Replies */}
-          <div className="px-3 py-2 border-t bg-gray-50">
-            <div className="flex flex-wrap gap-1.5">
+          <div className="px-2 py-1.5 border-t bg-gray-50">
+            <div className="flex flex-wrap gap-1">
               {quickReplies.map((reply, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickReply(reply.text)}
-                  className="quick-reply-button flex items-center space-x-1 px-2 py-1 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                  className="quick-reply-button flex items-center space-x-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
                 >
                   <span className="text-xs">{reply.icon}</span>
                   <span className="text-xs">{reply.text}</span>

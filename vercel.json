@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "cd client && npm run build",
+  "outputDirectory": "client/build",
+  "installCommand": "npm run install-all",
   "builds": [
     {
       "src": "client/package.json",
@@ -7,17 +10,9 @@
       "config": {
         "distDir": "build"
       }
-    },
-    {
-      "src": "server/index.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/index.js"
-    },
     {
       "src": "/(.*)",
       "dest": "/client/build/index.html"

@@ -1,12 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Calendar, Tag, Eye, Clock, TrendingUp, Star, Globe } from 'lucide-react';
+import { ArrowLeft, Search, Calendar, Eye, Clock, TrendingUp, Star, Globe } from 'lucide-react';
 
 const NoticiasPage = ({ noticias }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todas');
   const [sortBy, setSortBy] = useState('fecha');
-  const [viewMode, setViewMode] = useState('grid'); // grid o list
 
   // Categorías disponibles
   const categorias = [

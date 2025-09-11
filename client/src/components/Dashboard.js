@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, Users, BookOpen, Heart, Laptop, GraduationCap, Sparkles, Zap, Globe, Trophy, Lightbulb, Star } from 'lucide-react';
+import { ArrowRight, Users, BookOpen, Heart, Laptop, GraduationCap, Sparkles, Globe, Trophy, Lightbulb, Star, Zap } from 'lucide-react';
 import Carousel from './Carousel';
 
 const Dashboard = ({ carreras }) => {
@@ -22,35 +22,6 @@ const Dashboard = ({ carreras }) => {
     return nombre.replace(/Licenciatura en/g, 'Lic. en');
   };
 
-  const getCategoryIcon = (categoria) => {
-    switch (categoria) {
-      case 'general':
-        return <Sparkles className="w-4 h-4" />;
-      case 'tecnología':
-        return <Zap className="w-4 h-4" />;
-      case 'académico':
-        return <GraduationCap className="w-4 h-4" />;
-      case 'eventos':
-        return <Trophy className="w-4 h-4" />;
-      default:
-        return <Lightbulb className="w-4 h-4" />;
-    }
-  };
-
-  const getCategoryColor = (categoria) => {
-    switch (categoria) {
-      case 'general':
-        return 'from-blue-500 to-cyan-500';
-      case 'tecnología':
-        return 'from-purple-500 to-pink-500';
-      case 'académico':
-        return 'from-green-500 to-emerald-500';
-      case 'eventos':
-        return 'from-orange-500 to-red-500';
-      default:
-        return 'from-gray-500 to-gray-600';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">

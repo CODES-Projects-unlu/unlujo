@@ -7,6 +7,7 @@ import NoticiasPage from './components/NoticiasPage';
 import CarreraDetail from './components/CarreraDetail';
 import Chatbot from './components/Chatbot';
 import Footer from './components/Footer';
+import { staticCarreras, staticNoticias } from './data/staticData';
 import './App.css';
 
 function App() {
@@ -19,6 +20,17 @@ function App() {
     const cargarDatos = async () => {
       try {
         console.log('Cargando datos del servidor...');
+        
+        // En producción, usar datos estáticos
+        if (process.env.NODE_ENV === 'production') {
+          console.log('Usando datos estáticos para producción');
+          setCarreras(staticCarreras);
+          setNoticias(staticNoticias);
+          setLoading(false);
+          return;
+        }
+        
+        // En desarrollo, usar el backend local
         const [carrerasRes, noticiasRes] = await Promise.all([
           fetch('http://localhost:5000/api/carreras'),
           fetch('http://localhost:5000/api/noticias')

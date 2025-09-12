@@ -335,3 +335,13 @@ code {
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
+
+/* Hide scrollbar for quick replies */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}

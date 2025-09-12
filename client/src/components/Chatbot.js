@@ -7,7 +7,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "🤖 ¡Hola! Soy Lujito, tu robot asistente de UNLujo. Estoy aquí para ayudarte con cualquier consulta sobre la comunidad estudiantil. ¿En qué puedo asistirte?",
+      text: "🤖 ¡Hola! Soy Lujito, el asistente virtual de la comunidad estudiantil Unlu. Estoy aquí para ayudarte con cualquier consulta sobre la universidad. ¿En qué puedo asistirte?",
       isBot: true
     }
   ]);
@@ -17,7 +17,7 @@ const Chatbot = () => {
   const messagesContainerRef = useRef(null);
 
   // Configurar Gemini AI
-  const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyBvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQvQ');
+  const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY);
 
   const quickReplies = [
     { text: "Hola", icon: "👋" },
@@ -27,43 +27,92 @@ const Chatbot = () => {
     { text: "Ayuda", icon: "❓" }
   ];
 
-  // Función para obtener respuesta de Gemini
+  // Función para obtener respuesta de Gemini con búsqueda web
   const getGeminiResponse = async (message) => {
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash",
+        tools: [{ googleSearch: {} }]
+      });
       
       const prompt = `Eres Lujito, el asistente virtual de la Universidad Nacional de Luján (UNLu). 
-      
-Información sobre UNLu:
+
+INFORMACIÓN BASE DE UNLu:
 - Universidad ubicada en Luján, Buenos Aires, Argentina
 - Fundada en 1972
-- Carreras: Lic. en Sistemas de Información (LSI), Lic. en Trabajo Social (LTS), Lic. en Enfermería (LE)
+- Carreras disponibles: Lic. en Sistemas de Información (LSI), Lic. en Trabajo Social (LTS), Lic. en Enfermería (LE)
 - Centro de Estudiantes: CODES++ (para Sistemas)
-- Contacto: centroestudiantes@unlujo.edu.ar, (011) 1234-5678
-- Horarios: Lunes a Viernes 8:00-18:00, Sábados 8:00-12:00
+- Campus principal: Ruta 5 y Constitución, Luján, Buenos Aires
 
-Responde de manera amigable, útil y concisa. Usa emojis apropiados. Si no sabes algo específico sobre UNLu, admítelo pero ofrece ayuda general sobre universidad o educación.
+INSTRUCCIONES CRÍTICAS:
+- SIEMPRE responde como Lujito, el asistente virtual de la comunidad estudiantil Unlu
+- RESPUESTAS ULTRA-CORTAS: máximo 1-2 líneas, máximo 50 palabras
+- Para información específica de UNLu, usa búsqueda web
+- NO uses párrafos largos, NO expliques mucho
+- Usa emojis, mantén tono amigable
+- Si no sabes algo, di "No tengo esa info" y punto
+- NO saludes en cada respuesta, solo responde directamente
+- Para consultas de hora, usa la zona horaria de Argentina (GMT-3)
+- EJEMPLO BUENO: "📞 El teléfono es 123-4567. ¿Algo más?"
+- EJEMPLO MALO: "¡Hola! Te ayudo con gusto. El teléfono de contacto es..."
 
 Pregunta del usuario: ${message}`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      return response.text();
+      let text = response.text();
+      
+      // Eliminar saludos repetitivos
+      text = text.replace(/^(¡Hola!|Hola!|¡Hola|Hola)\s*/gi, '');
+      text = text.replace(/^(👋\s*)?(¡Hola!|Hola!|¡Hola|Hola)\s*/gi, '');
+      
+      // Corregir zona horaria de UTC a Argentina (GMT-3)
+      text = text.replace(/UTC/g, 'hora de Argentina');
+      text = text.replace(/(\d{1,2}):(\d{2})\s*AM\s*UTC/gi, (match, hour, minute) => {
+        const argentinaHour = (parseInt(hour) - 3 + 24) % 24;
+        return `${argentinaHour}:${minute} AM hora de Argentina`;
+      });
+      text = text.replace(/(\d{1,2}):(\d{2})\s*PM\s*UTC/gi, (match, hour, minute) => {
+        const argentinaHour = (parseInt(hour) - 3 + 12) % 12;
+        return `${argentinaHour}:${minute} PM hora de Argentina`;
+      });
+      
+      // Forzar respuestas más cortas - cortar si es muy largo
+      if (text.length > 200) {
+        const sentences = text.split('.');
+        text = sentences.slice(0, 2).join('.') + '.';
+      }
+      
+      return text;
     } catch (error) {
       console.error('Error con Gemini:', error);
-      return "Lo siento, no pude procesar tu consulta en este momento. ¿Podrías intentar de nuevo?";
+      return "❌ Error. Intenta de nuevo.";
     }
   };
 
   // Scroll automático al final de los mensajes
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "end",
+        inline: "nearest"
+      });
+    }, 100);
   };
 
   // Efecto de scroll cuando se agregan mensajes
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Scroll adicional durante la escritura
+  useEffect(() => {
+    if (isTyping) {
+      const interval = setInterval(scrollToBottom, 500);
+      return () => clearInterval(interval);
+    }
+  }, [isTyping]);
 
   // Efecto de escritura para mensajes del bot
   const typeMessage = (text, messageId) => {
@@ -78,8 +127,14 @@ Pregunta del usuario: ${message}`;
           )
         );
         index++;
+        // Scroll durante la escritura cada 15 caracteres
+        if (index % 15 === 0) {
+          scrollToBottom();
+        }
       } else {
         clearInterval(interval);
+        // Scroll final cuando termina de escribir
+        scrollToBottom();
       }
     }, 20); // Velocidad de escritura más rápida
   };
@@ -197,7 +252,7 @@ Pregunta del usuario: ${message}`;
           </div>
 
           {/* Messages */}
-          <div ref={messagesContainerRef} className="messages-container flex-1 p-4 overflow-y-auto space-y-3 min-h-0">
+          <div ref={messagesContainerRef} className="messages-container flex-1 p-4 overflow-y-auto space-y-3 min-h-0 scroll-smooth" style={{scrollBehavior: 'smooth'}}>
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -229,13 +284,13 @@ Pregunta del usuario: ${message}`;
           </div>
 
           {/* Quick Replies */}
-          <div className="px-2 py-1.5 border-t bg-gray-50">
-            <div className="flex flex-wrap gap-1">
+          <div className="px-2 py-1.5 border-t bg-gray-50 w-full">
+            <div className="flex flex-nowrap gap-1 overflow-x-auto scrollbar-hide w-full">
               {quickReplies.map((reply, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickReply(reply.text)}
-                  className="quick-reply-button flex items-center space-x-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                  className="quick-reply-button flex items-center space-x-0.5 px-1.5 py-0.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors whitespace-nowrap flex-shrink-0"
                 >
                   <span className="text-xs">{reply.icon}</span>
                   <span className="text-xs">{reply.text}</span>

@@ -30,22 +30,28 @@ export const staticNoticias = [
   {
     id: 1,
     titulo: "Bienvenidos al nuevo año académico",
+    contenido: "Iniciamos un nuevo ciclo lectivo con muchas expectativas y proyectos. La Universidad Nacional de Luján está lista para recibir a todos los estudiantes.",
     resumen: "Iniciamos un nuevo ciclo lectivo con muchas expectativas y proyectos.",
     fecha: "2024-03-01",
-    categoria: "General"
+    categoria: "general",
+    imagen: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=400&fit=crop&crop=center"
   },
   {
     id: 2,
     titulo: "Inscripciones abiertas para el segundo cuatrimestre",
+    contenido: "Ya están disponibles las inscripciones para materias del segundo cuatrimestre. Los estudiantes pueden inscribirse a través del sistema online.",
     resumen: "Ya están disponibles las inscripciones para materias del segundo cuatrimestre.",
     fecha: "2024-02-15",
-    categoria: "Académico"
+    categoria: "académico",
+    imagen: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=400&fit=crop&crop=center"
   },
   {
     id: 3,
     titulo: "Nuevas instalaciones en el campus",
+    contenido: "Se inauguraron nuevas aulas y laboratorios para mejorar la experiencia estudiantil. Estas mejoras incluyen tecnología de última generación.",
     resumen: "Se inauguraron nuevas aulas y laboratorios para mejorar la experiencia estudiantil.",
     fecha: "2024-01-20",
-    categoria: "Infraestructura"
+    categoria: "eventos",
+    imagen: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=400&fit=crop&crop=center"
   }
 ];

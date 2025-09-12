@@ -30,6 +30,14 @@ const Chatbot = () => {
   // Función para obtener respuesta de Gemini con búsqueda web
   const getGeminiResponse = async (message) => {
     try {
+      // Debug: verificar si la API key se está cargando
+      console.log('🔑 API Key en producción:', process.env.REACT_APP_GEMINI_API_KEY ? 'SÍ' : 'NO');
+      console.log('🔑 Longitud de API Key:', process.env.REACT_APP_GEMINI_API_KEY?.length || 0);
+      
+      if (!process.env.REACT_APP_GEMINI_API_KEY) {
+        return "❌ Error: API key no configurada en Vercel";
+      }
+      
       const model = genAI.getGenerativeModel({ 
         model: "gemini-2.0-flash",
         tools: [{ googleSearch: {} }]

@@ -1,0 +1,32 @@
+{
+  "becas": [
+    {
+      "id": "beca_interna",
+      "nombre": "Becas Estudiantiles Internas",
+      "descripcion": "Ayuda económica para estudiantes regulares",
+      "requisitos": [
+        "Ser estudiante regular de la universidad",
+        "Rendir al menos 2 materias por año",
+        "Situación socioeconómica desfavorable",
+        "No tener otra beca activa"
+      ],
+      "monto": "Variable según situación (entre $15.000 y $50.000)",
+      "duracion": "Anual (renovable)",
+      "fechaApertura": "2025-03-01",
+      "fechaCierre": "2025-03-31",
+      "documentacion": [
+        "Formulario de solicitud",
+        "Constancia de alumno regular",
+        "Comprobantes de ingresos familiares",
+        "DNI y fotocopia",
+        "Certificado de domicilio"
+      ],
+      "contacto": {
+        "telefono": "(02323) 420-400 int. 456",
+        "email": "becas@unlu.edu.ar",
+        "oficina": "Bienestar Estudiantil",
+        "responsable": "Lic. Carmen Díaz"
+      }
+    }
+  ]
+}

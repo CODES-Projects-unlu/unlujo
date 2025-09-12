@@ -1,0 +1,47 @@
+{
+  "centros": [
+    {
+      "id": "lujan",
+      "nombre": "Sede Central Luján",
+      "direccion": "Ruta 5 y Avenida Constitución",
+      "codigo_postal": "6700",
+      "ciudad": "Luján",
+      "provincia": "Buenos Aires",
+      "telefono": "(02323) 420-400",
+      "email": "info@unlu.edu.ar",
+      "coordinador": "Dr. Carlos Mendoza",
+      "servicios": [
+        "Rectorado",
+        "Secretaría Académica",
+        "Biblioteca Central",
+        "Área de Deportes",
+        "Bienestar Estudiantil"
+      ],
+      "carreras": [
+        "Licenciatura en Sistemas de Información",
+        "Licenciatura en Enfermería",
+        "Profesorado en Educación Física"
+      ]
+    },
+    {
+      "id": "san_miguel",
+      "nombre": "Centro Regional San Miguel",
+      "direccion": "Av. Roca 850",
+      "codigo_postal": "1663",
+      "ciudad": "San Miguel",
+      "provincia": "Buenos Aires",
+      "telefono": "(011) 4664-1234",
+      "email": "sanmiguel@unlu.edu.ar",
+      "coordinador": "Lic. Ana Rodríguez",
+      "servicios": [
+        "Secretaría Académica",
+        "Biblioteca",
+        "Área de Deportes"
+      ],
+      "carreras": [
+        "Tecnicatura en Administración",
+        "Profesorado en Matemática"
+      ]
+    }
+  ]
+}

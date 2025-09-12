@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Cpu } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { buildContextFromKnowledgeBase, getContextualResponse } from '../../../data/knowledgeBase';
 import './Chatbot.css';
 
 const Chatbot = () => {
@@ -31,18 +32,28 @@ const Chatbot = () => {
   // Función para obtener respuesta de Gemini con búsqueda web
   const getGeminiResponse = async (message) => {
     try {
+      // Primero intentar respuesta contextual con base de conocimiento
+      const contextualResponse = getContextualResponse(message);
+      if (contextualResponse) {
+        return contextualResponse;
+      }
+      
       // Debug: verificar si la API key se está cargando
       console.log('🔑 API Key en producción:', process.env.REACT_APP_GEMINI_API_KEY ? 'SÍ' : 'NO');
       console.log('🔑 Longitud de API Key:', process.env.REACT_APP_GEMINI_API_KEY?.length || 0);
       
       if (!process.env.REACT_APP_GEMINI_API_KEY) {
-        // Respuestas de fallback cuando no hay API key
+        // Respuestas de fallback mejoradas con base de conocimiento
         const fallbackResponses = {
           'hola': '👋 ¡Hola! Soy Lujito, tu asistente virtual de UNLu. ¿En qué puedo ayudarte?',
           'horarios': '🕒 Los horarios varían por carrera. Consulta en la secretaría de tu facultad.',
           'carreras': '🎓 Tenemos LSI, Trabajo Social y Enfermería. ¿Cuál te interesa?',
           'contacto': '📞 Teléfono: (02323) 420-400. Email: info@unlu.edu.ar',
-          'ayuda': '❓ Puedo ayudarte con info sobre carreras, horarios y contacto. ¿Qué necesitas?'
+          'ayuda': '❓ Puedo ayudarte con info sobre carreras, horarios y contacto. ¿Qué necesitas?',
+          'biblioteca': '📚 Biblioteca Central: Lunes a Viernes 08:00-22:00. Tel: (02323) 420-400 int. 123',
+          'deportes': '⚽ Área de Deportes: Lunes a Viernes 08:00-22:00. Tel: (02323) 420-400 int. 789',
+          'becas': '💰 Becas disponibles: Estudiantiles Internas y de Transporte. Consulta en Bienestar Estudiantil.',
+          'ubicacion': '📍 UNLu: Ruta 5 y Constitución, Luján, Buenos Aires. Web: www.unlu.edu.ar'
         };
         
         const lowerMessage = message.toLowerCase();
@@ -52,7 +63,7 @@ const Chatbot = () => {
           }
         }
         
-        return "🤖 Soy Lujito, tu asistente de UNLu. Pregúntame sobre carreras, horarios o contacto.";
+        return "🤖 Soy Lujito, tu asistente de UNLu. Pregúntame sobre carreras, horarios, servicios o contacto.";
       }
       
       const model = genAI.getGenerativeModel({ 
@@ -60,19 +71,18 @@ const Chatbot = () => {
         tools: [{ googleSearch: {} }]
       });
       
-      const prompt = `Eres Lujito, el asistente virtual de la Universidad Nacional de Luján (UNLu). 
+      // Construir contexto con base de conocimiento
+      const context = buildContextFromKnowledgeBase();
+      
+      const prompt = `Eres Lujito, el asistente virtual de la Universidad Nacional de Luján (UNLu).
 
-INFORMACIÓN BASE DE UNLu:
-- Universidad ubicada en Luján, Buenos Aires, Argentina
-- Fundada en 1972
-- Carreras disponibles: Lic. en Sistemas de Información (LSI), Lic. en Trabajo Social (LTS), Lic. en Enfermería (LE)
-- Centro de Estudiantes: CODES++ (para Sistemas)
-- Campus principal: Ruta 5 y Constitución, Luján, Buenos Aires
+INFORMACIÓN ACTUALIZADA DE UNLu:
+${context}
 
 INSTRUCCIONES CRÍTICAS:
 - SIEMPRE responde como Lujito, el asistente virtual de la comunidad estudiantil Unlu
 - RESPUESTAS ULTRA-CORTAS: máximo 1-2 líneas, máximo 50 palabras
-- Para información específica de UNLu, usa búsqueda web
+- Usa la información específica de UNLu que tienes disponible
 - NO uses párrafos largos, NO expliques mucho
 - Usa emojis, mantén tono amigable
 - Si no sabes algo, di "No tengo esa info" y punto

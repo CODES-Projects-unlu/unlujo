@@ -1,0 +1,92 @@
+{
+  "carrera": "Licenciatura en Sistemas de Información",
+  "sigla": "LSI",
+  "codigo_carrera": "17",
+  "descripcion": "Datos universales de materias (códigos, correlatividades, horas) - independiente de sede",
+  "materias": [
+    {
+      "año": 1,
+      "cuatrimestre": 1,
+      "materias": [
+        {
+          "codigo": "11071",
+          "nombre": "Introducción a la Programación",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "--------",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "11072",
+          "nombre": "Álgebra y Lógica Computacional",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "--------",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "21056",
+          "nombre": "Introducción a los Sistemas de Información",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "--------",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "41407",
+          "nombre": "Organización de Computadoras",
+          "horas_semanales": 4,
+          "horas_totales": 64,
+          "correlatividad": "--------",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        }
+      ]
+    },
+    {
+      "año": 1,
+      "cuatrimestre": 2,
+      "materias": [
+        {
+          "codigo": "11073",
+          "nombre": "Matemática Discreta",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "11072",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "11074",
+          "nombre": "Programación I",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "11071",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "41406",
+          "nombre": "Arquitectura de Computadoras",
+          "horas_semanales": 6,
+          "horas_totales": 96,
+          "correlatividad": "41407",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        },
+        {
+          "codigo": "31971",
+          "nombre": "Inglés I",
+          "horas_semanales": 4,
+          "horas_totales": 64,
+          "correlatividad": "---------",
+          "modalidad_base": "Presencial",
+          "nota": "Horarios, aulas y profesores se gestionan por sede en BD"
+        }
+      ]
+    }
+  ]
+}

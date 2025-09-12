@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, Cpu } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import './Chatbot.css';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +36,23 @@ const Chatbot = () => {
       console.log('🔑 Longitud de API Key:', process.env.REACT_APP_GEMINI_API_KEY?.length || 0);
       
       if (!process.env.REACT_APP_GEMINI_API_KEY) {
-        return "❌ Error: API key no configurada en Vercel";
+        // Respuestas de fallback cuando no hay API key
+        const fallbackResponses = {
+          'hola': '👋 ¡Hola! Soy Lujito, tu asistente virtual de UNLu. ¿En qué puedo ayudarte?',
+          'horarios': '🕒 Los horarios varían por carrera. Consulta en la secretaría de tu facultad.',
+          'carreras': '🎓 Tenemos LSI, Trabajo Social y Enfermería. ¿Cuál te interesa?',
+          'contacto': '📞 Teléfono: (02323) 420-400. Email: info@unlu.edu.ar',
+          'ayuda': '❓ Puedo ayudarte con info sobre carreras, horarios y contacto. ¿Qué necesitas?'
+        };
+        
+        const lowerMessage = message.toLowerCase();
+        for (const [key, response] of Object.entries(fallbackResponses)) {
+          if (lowerMessage.includes(key)) {
+            return response;
+          }
+        }
+        
+        return "🤖 Soy Lujito, tu asistente de UNLu. Pregúntame sobre carreras, horarios o contacto.";
       }
       
       const model = genAI.getGenerativeModel({ 
@@ -149,7 +166,12 @@ Pregunta del usuario: ${message}`;
 
   const handleSendMessage = async (messageText = null) => {
     const messageToSend = messageText || inputMessage;
-    if (!messageToSend.trim()) return;
+    if (!messageToSend.trim()) {
+      console.log('Mensaje vacío, no se envía');
+      return;
+    }
+    
+    console.log('Enviando mensaje:', messageToSend);
 
     const userMessage = {
       id: Date.now(),
@@ -319,8 +341,10 @@ Pregunta del usuario: ${message}`;
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               <button
-                onClick={handleSendMessage}
-                className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => handleSendMessage()}
+                disabled={!inputMessage.trim()}
+                className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
               >
                 <Send className="w-4 h-4" />
               </button>

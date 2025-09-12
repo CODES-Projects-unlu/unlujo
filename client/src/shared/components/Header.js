@@ -1,5 +1,6 @@
 import React from 'react';
-import { GraduationCap, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GraduationCap, Sparkles, Settings } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -29,6 +30,16 @@ const Header = () => {
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600 font-medium">En línea</span>
             </div>
+            
+            {/* Enlace al Super Admin Dashboard */}
+            <Link 
+              to="/super-admin"
+              className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+              title="Super Admin Dashboard"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
             
             <div className="md:hidden">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>

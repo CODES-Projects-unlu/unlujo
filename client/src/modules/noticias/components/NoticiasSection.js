@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, ArrowRight, Sparkles, Zap, GraduationCap, Trophy, Lightbulb, Eye } from 'lucide-react';
-import Carousel from './Carousel';
+import { Carousel } from '../../../shared';
 
 const NoticiasSection = ({ noticias }) => {
   const getCategoryIcon = (categoria) => {

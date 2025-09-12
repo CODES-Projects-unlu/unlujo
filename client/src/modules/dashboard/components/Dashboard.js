@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, BookOpen, Heart, Laptop, GraduationCap, Sparkles, Globe, Star, Zap } from 'lucide-react';
-import Carousel from './Carousel';
+import { Carousel } from '../../../shared';
 
 const Dashboard = ({ carreras }) => {
   const getIcon = (carrera, isMobile = false) => {

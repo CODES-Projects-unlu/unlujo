@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Dashboard from './components/Dashboard';
-import NoticiasSection from './components/NoticiasSection';
-import NoticiasPage from './components/NoticiasPage';
-import CarreraDetail from './components/CarreraDetail';
-import Chatbot from './components/Chatbot';
-import Footer from './components/Footer';
+
+// Importaciones modulares
+import { Header, Footer } from './shared';
+import { Dashboard } from './modules/dashboard';
+import { NoticiasSection, NoticiasPage } from './modules/noticias';
+import { CarreraDetail } from './modules/carreras';
+import { Chatbot } from './modules/chatbot';
+import { SuperAdminDashboard } from './modules/super-admin';
+
 import { staticCarreras, staticNoticias } from './data/staticData';
 import './App.css';
 
@@ -177,6 +179,12 @@ function App() {
               <NoticiasPage 
                 noticias={noticias} 
               />
+            } 
+          />
+          <Route 
+            path="/super-admin" 
+            element={
+              <SuperAdminDashboard />
             } 
           />
         </Routes>

@@ -68,7 +68,13 @@ app.use(helmet({
   },
 }));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: [
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000',
+    'https://unlujo.vercel.app',
+    'https://unlujo-rizzofs-projects.vercel.app',
+    'https://unlujo-git-master-rizzofs-projects.vercel.app'
+  ],
   credentials: true
 }));
 app.use(express.json());

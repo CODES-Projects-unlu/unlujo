@@ -13,6 +13,8 @@ La información más importante que necesitamos es el **plan de estudios complet
 
 ---
 
+---
+
 ## 📚 Información Necesaria
 
 ### 🎓 **Para ambas carreras: Lic. en Trabajo Social y Lic. en Enfermería**

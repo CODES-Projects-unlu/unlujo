@@ -1,6 +1,6 @@
 // Servicio de API para comunicación con el backend
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://server-3iouwgny9-rizzofs-projects.vercel.app' 
+  ? 'https://server-ovb3jjhjm-rizzofs-projects.vercel.app' 
   : 'http://localhost:5000';
 
 class ApiService {

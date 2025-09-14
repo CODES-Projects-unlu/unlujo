@@ -13,10 +13,20 @@
     "setup": "npm run install-all",
     "start-dev": "start cmd /k \"cd server && npm run dev\" && start cmd /k \"cd client && npm start\""
   },
-  "keywords": ["pwa", "react", "node", "comunidad-estudiantil", "unlu"],
+  "keywords": [
+    "pwa",
+    "react",
+    "node",
+    "comunidad-estudiantil",
+    "unlu"
+  ],
   "author": "UNLujo - Comunidad Estudiantil UNLu",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "pg": "^8.16.3"
   }
 }

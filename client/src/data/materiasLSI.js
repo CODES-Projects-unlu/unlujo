@@ -1,4 +1,7 @@
-{
+// Plan de estudios oficial de Licenciatura en Sistemas de Información - UNLu
+// Resolución H.C.S. N° 260/24
+
+export const materiasLSI = {
   "carrera": "Licenciatura en Sistemas de Información",
   "sigla": "LSI",
   "codigo_carrera": "17.14",
@@ -434,4 +437,4 @@
     "correlatividad": "Todas las actividades académicas",
     "nota": "Trabajo final de grado"
   }
-}
+};

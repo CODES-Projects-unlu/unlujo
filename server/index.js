@@ -2,15 +2,104 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { query, testConnection } = require('./database');
+const Joi = require('joi');
+const { 
+  loginSchema, 
+  registerSchema, 
+  generateToken, 
+  hashPassword, 
+  verifyPassword, 
+  authenticateToken, 
+  requireRole 
+} = require('./auth');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configuración de multer para subida de archivos
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, 'uploads', 'profiles');
+    // Crear directorio si no existe
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    // Generar nombre único para el archivo
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `profile-${req.user.id}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    // Solo permitir imágenes
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen'), false);
+    }
+  }
+});
+
 // Middleware de seguridad
-app.use(helmet());
-app.use(cors());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}));
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true
+}));
 app.use(express.json());
+
+// Endpoint específico para servir imágenes de perfil
+app.get('/api/uploads/profiles/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const imagePath = path.join(__dirname, 'uploads', 'profiles', filename);
+  
+  // Verificar que el archivo existe
+  if (!fs.existsSync(imagePath)) {
+    return res.status(404).json({ error: 'Imagen no encontrada' });
+  }
+  
+  // Configurar headers CORS
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Content-Type', 'image/jpeg');
+  
+  // Enviar el archivo
+  res.sendFile(imagePath);
+});
+
+// Servir archivos estáticos (fotos de perfil) con CORS habilitado
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -18,6 +107,15 @@ const limiter = rateLimit({
   max: 100 // límite de 100 requests por IP
 });
 app.use(limiter);
+
+// Middleware de logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  if (req.path === '/api/auth/register') {
+    console.log('🔍 Petición de registro detectada');
+  }
+  next();
+});
 
 // Rutas
 app.get('/api/health', (req, res) => {
@@ -40,6 +138,28 @@ app.get('/api/test', (req, res) => {
     timestamp: new Date().toISOString(),
     carreras: 'Disponible en /api/carreras',
     noticias: 'Disponible en /api/noticias'
+  });
+});
+
+// Endpoint de prueba POST
+app.post('/api/test-post', (req, res) => {
+  console.log('🧪 ENDPOINT DE PRUEBA POST LLAMADO');
+  console.log('📝 Datos recibidos:', req.body);
+  res.json({ 
+    message: 'POST funcionando correctamente',
+    data: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Endpoint de registro de prueba
+app.post('/api/auth/register-test', (req, res) => {
+  console.log('🚀 REGISTRO DE PRUEBA LLAMADO');
+  console.log('📝 Datos recibidos:', req.body);
+  res.json({ 
+    success: true,
+    message: 'Registro de prueba funcionando',
+    data: req.body
   });
 });
 
@@ -728,8 +848,8 @@ app.get('/api/stats', (req, res) => {
       nodeVersion: process.version
     },
     endpoints: {
-      total: 6,
-      active: 6,
+      total: 10,
+      active: 10,
       lastUpdated: new Date().toISOString()
     },
     features: [
@@ -738,9 +858,584 @@ app.get('/api/stats', (req, res) => {
       "Responsive Design", 
       "Auto-scroll Chat",
       "Quick Replies",
-      "University Branding"
+      "University Branding",
+      "User Authentication",
+      "Database Integration"
     ]
   });
+});
+
+// =====================================================
+// ENDPOINTS DE AUTENTICACIÓN
+// =====================================================
+
+// Endpoint de registro de usuario
+app.post('/api/auth/register', async (req, res) => {
+  console.log('🚀 ENDPOINT DE REGISTRO LLAMADO');
+  console.log('📝 Registro recibido:', req.body);
+  console.log('📝 Headers:', req.headers);
+  console.log('📝 Content-Type:', req.get('Content-Type'));
+  try {
+    
+    // Validar datos de entrada
+    const { error, value } = registerSchema.validate(req.body);
+    if (error) {
+      console.log('❌ Errores de validación:', error.details);
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de entrada inválidos',
+        errors: error.details.map(detail => detail.message)
+      });
+    }
+
+    const { nombre, apellido, email, password, telefono, dni, carrera_id, anio_ingreso } = value;
+
+    // Verificar si el email ya existe
+    const existingEmail = await query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (existingEmail.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'El email ya está registrado'
+      });
+    }
+
+    // Verificar si el DNI ya existe
+    const existingDni = await query(
+      'SELECT id FROM users WHERE dni = $1',
+      [dni]
+    );
+    
+    if (existingDni.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: 'El DNI ya está registrado'
+      });
+    }
+
+    // Verificar que la carrera existe
+    const carrera = await query(
+      'SELECT id, nombre FROM careers WHERE id = $1 AND estado = $2',
+      [carrera_id, 'active']
+    );
+    
+    if (carrera.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'La carrera seleccionada no existe o no está activa'
+      });
+    }
+
+    // Generar salt para la contraseña
+    const salt = require('crypto').randomBytes(32).toString('hex');
+    const passwordHash = await hashPassword(password, salt);
+
+    // Crear usuario
+    const result = await query(
+      `INSERT INTO users (nombre, apellido, email, telefono, dni, carrera_id, año_ingreso, password_hash, salt, rol, estado, email_verificado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, nombre, apellido, email, rol, carrera_id, email_verificado, fecha_creacion`,
+      [nombre, apellido, email, telefono, dni, carrera_id, anio_ingreso, passwordHash, salt, 'estudiante', 'Activo', false]
+    );
+
+    const newUser = result.rows[0];
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario registrado exitosamente',
+      user: {
+        id: newUser.id,
+        nombre: newUser.nombre,
+        apellido: newUser.apellido,
+        email: newUser.email,
+        rol: newUser.rol,
+        carrera_id: newUser.carrera_id,
+        email_verificado: newUser.email_verificado,
+        fecha_creacion: newUser.fecha_creacion
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en registro:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+  console.log('🏁 FIN DEL ENDPOINT DE REGISTRO');
+});
+
+// Endpoint de login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    console.log('🔐 Login recibido:', req.body);
+    
+    // Validar datos de entrada
+    const { error, value } = loginSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de entrada inválidos',
+        errors: error.details.map(detail => detail.message)
+      });
+    }
+
+    const { email, password } = value;
+
+    // Buscar usuario por email
+    const result = await query(
+      `SELECT u.*, c.nombre as carrera_nombre, c.sigla as carrera_sigla
+       FROM users u 
+       JOIN careers c ON u.carrera_id = c.id 
+       WHERE u.email = $1 AND u.estado = $2`,
+      [email, 'Activo']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Credenciales incorrectas'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Verificar contraseña
+    const isValidPassword = await verifyPassword(password, user.password_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Credenciales incorrectas'
+      });
+    }
+
+    // Verificar si la cuenta está bloqueada
+    if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
+      return res.status(423).json({
+        success: false,
+        message: 'Cuenta bloqueada temporalmente por intentos fallidos'
+      });
+    }
+
+    // Generar token JWT
+    const token = generateToken(user);
+
+    // Actualizar último acceso
+    await query(
+      'UPDATE users SET fecha_ultimo_acceso = NOW() WHERE id = $1',
+      [user.id]
+    );
+
+    // Resetear intentos fallidos si existían
+    if (user.intentos_fallidos > 0) {
+      await query(
+        'UPDATE users SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id = $1',
+        [user.id]
+      );
+    }
+
+    res.json({
+      success: true,
+      message: 'Login exitoso',
+      token,
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        rol: user.rol,
+        carrera_id: user.carrera_id,
+        carrera_nombre: user.carrera_nombre,
+        carrera_sigla: user.carrera_sigla,
+        email_verificado: user.email_verificado,
+        foto: user.foto
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
+// Endpoint para obtener perfil del usuario autenticado
+app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT u.*, c.nombre as carrera_nombre, c.sigla as carrera_sigla
+       FROM users u 
+       JOIN careers c ON u.carrera_id = c.id 
+       WHERE u.id = $1`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const user = result.rows[0];
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        email: user.email,
+        telefono: user.telefono,
+        foto: user.foto,
+        dni: user.dni,
+        rol: user.rol,
+        carrera_id: user.carrera_id,
+        carrera_nombre: user.carrera_nombre,
+        carrera_sigla: user.carrera_sigla,
+        año_ingreso: user.año_ingreso,
+        estado_academico: user.estado_academico,
+        email_verificado: user.email_verificado,
+        fecha_creacion: user.fecha_creacion,
+        fecha_nacimiento: user.fecha_nacimiento,
+        fecha_ultimo_acceso: user.fecha_ultimo_acceso
+      }
+    });
+
+  } catch (error) {
+    console.error('Error obteniendo perfil:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
+// Endpoint para actualizar perfil del usuario
+app.put('/api/auth/profile', authenticateToken, async (req, res) => {
+  try {
+    console.log('📝 Actualización de perfil recibida:', req.body);
+    console.log('📝 Fecha de nacimiento recibida:', req.body.fecha_nacimiento);
+    
+    // Validar datos de entrada
+    const updateSchema = Joi.object({
+      nombre: Joi.string().min(2).max(100).optional().messages({
+        'string.min': 'El nombre debe tener al menos 2 caracteres',
+        'string.max': 'El nombre no puede tener más de 100 caracteres'
+      }),
+      apellido: Joi.string().min(2).max(100).optional().messages({
+        'string.min': 'El apellido debe tener al menos 2 caracteres',
+        'string.max': 'El apellido no puede tener más de 100 caracteres'
+      }),
+      email: Joi.string().email().optional().messages({
+        'string.email': 'El email debe tener un formato válido'
+      }),
+      telefono: Joi.string().pattern(/^[0-9+\-\s()]+$/).optional().allow('').messages({
+        'string.pattern.base': 'El teléfono debe contener solo números, espacios, guiones y paréntesis'
+      }),
+      fecha_nacimiento: Joi.string().optional().allow('', null).messages({
+        'string.base': 'La fecha de nacimiento debe ser una cadena de texto'
+      }),
+      dni: Joi.string().pattern(/^[0-9]{7,8}$/).optional().allow('').messages({
+        'string.pattern.base': 'El DNI debe tener entre 7 y 8 dígitos'
+      }),
+      estado_academico: Joi.string().valid('Activo', 'Inactivo', 'Egresado', 'Abandonó').optional().messages({
+        'any.only': 'El estado académico debe ser uno de: Activo, Inactivo, Egresado, Abandonó'
+      })
+    });
+
+    const { error, value } = updateSchema.validate(req.body);
+    if (error) {
+      console.log('❌ Errores de validación:', error.details);
+      console.log('❌ Datos que fallaron la validación:', req.body);
+      return res.status(400).json({
+        success: false,
+        message: 'Datos de entrada inválidos',
+        errors: error.details.map(detail => detail.message)
+      });
+    }
+
+    const { nombre, apellido, email, telefono, fecha_nacimiento, dni, estado_academico } = value;
+    
+    console.log('📝 Datos extraídos después de validación:');
+    console.log('📝 - fecha_nacimiento:', fecha_nacimiento);
+    console.log('📝 - dni:', dni);
+    console.log('📝 - estado_academico:', estado_academico);
+
+    // Verificar si el email ya existe en otro usuario
+    if (email) {
+      const existingEmail = await query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email, req.user.id]
+      );
+
+      if (existingEmail.rows.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'El email ya está registrado por otro usuario'
+        });
+      }
+    }
+
+    // Verificar si el DNI ya existe en otro usuario
+    if (dni && dni.trim() !== '') {
+      const existingDni = await query(
+        'SELECT id FROM users WHERE dni = $1 AND id != $2',
+        [dni, req.user.id]
+      );
+
+      if (existingDni.rows.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'El DNI ya está registrado por otro usuario'
+        });
+      }
+    }
+
+    // Construir la consulta de actualización dinámicamente
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (nombre !== undefined) {
+      updates.push(`nombre = $${paramCount}`);
+      values.push(nombre);
+      paramCount++;
+    }
+
+    if (apellido !== undefined) {
+      updates.push(`apellido = $${paramCount}`);
+      values.push(apellido);
+      paramCount++;
+    }
+
+    if (email !== undefined) {
+      updates.push(`email = $${paramCount}`);
+      values.push(email);
+      paramCount++;
+    }
+
+    if (telefono !== undefined) {
+      updates.push(`telefono = $${paramCount}`);
+      values.push(telefono);
+      paramCount++;
+    }
+
+    if (fecha_nacimiento !== undefined && fecha_nacimiento !== null && fecha_nacimiento !== '') {
+      console.log('📝 Agregando fecha_nacimiento a la actualización:', fecha_nacimiento);
+      updates.push(`fecha_nacimiento = $${paramCount}`);
+      // Convertir string a Date si es necesario
+      const fechaParaBD = fecha_nacimiento instanceof Date ? fecha_nacimiento : new Date(fecha_nacimiento);
+      values.push(fechaParaBD);
+      paramCount++;
+    }
+
+    if (dni !== undefined) {
+      updates.push(`dni = $${paramCount}`);
+      values.push(dni);
+      paramCount++;
+    }
+
+    if (estado_academico !== undefined) {
+      updates.push(`estado_academico = $${paramCount}`);
+      values.push(estado_academico);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No hay datos para actualizar'
+      });
+    }
+
+    // Agregar ID del usuario
+    values.push(req.user.id);
+
+    const queryText = `
+      UPDATE users 
+      SET ${updates.join(', ')} 
+      WHERE id = $${paramCount}
+      RETURNING id, nombre, apellido, email, telefono, dni, carrera_id, año_ingreso, rol, estado_academico, email_verificado, fecha_creacion, fecha_nacimiento, fecha_ultimo_acceso
+    `;
+
+    console.log('📝 Consulta SQL final:', queryText);
+    console.log('📝 Valores para la consulta:', values);
+
+    const result = await query(queryText, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const updatedUser = result.rows[0];
+
+    // Obtener información de la carrera
+    const carreraResult = await query(
+      'SELECT nombre, sigla FROM careers WHERE id = $1',
+      [updatedUser.carrera_id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Perfil actualizado exitosamente',
+      user: {
+        id: updatedUser.id,
+        nombre: updatedUser.nombre,
+        apellido: updatedUser.apellido,
+        email: updatedUser.email,
+        telefono: updatedUser.telefono,
+        dni: updatedUser.dni,
+        rol: updatedUser.rol,
+        carrera_id: updatedUser.carrera_id,
+        carrera_nombre: carreraResult.rows[0]?.nombre || 'Carrera no encontrada',
+        carrera_sigla: carreraResult.rows[0]?.sigla || '',
+        año_ingreso: updatedUser.año_ingreso,
+        estado_academico: updatedUser.estado_academico,
+        email_verificado: updatedUser.email_verificado,
+        fecha_creacion: updatedUser.fecha_creacion,
+        fecha_nacimiento: updatedUser.fecha_nacimiento,
+        fecha_ultimo_acceso: updatedUser.fecha_ultimo_acceso
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error actualizando perfil:', error);
+    console.error('❌ Stack trace:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Endpoint para subir foto de perfil
+app.post('/api/auth/profile/photo', authenticateToken, upload.single('photo'), async (req, res) => {
+  try {
+    console.log('📸 Subida de foto de perfil recibida');
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No se proporcionó ningún archivo'
+      });
+    }
+
+    // Leer la imagen y convertir a base64
+    const imageBuffer = fs.readFileSync(req.file.path);
+    const base64Image = imageBuffer.toString('base64');
+    const mimeType = req.file.mimetype;
+    const photoDataUrl = `data:${mimeType};base64,${base64Image}`;
+    
+    // Eliminar el archivo físico ya que no lo necesitamos
+    fs.unlinkSync(req.file.path);
+    
+    // Actualizar la base de datos con la imagen en base64
+    const result = await query(
+      'UPDATE users SET foto = $1 WHERE id = $2 RETURNING id, nombre, apellido, email, telefono, dni, carrera_id, año_ingreso, rol, estado_academico, email_verificado, fecha_creacion, foto',
+      [photoDataUrl, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const updatedUser = result.rows[0];
+
+    // Obtener información de la carrera
+    const carreraResult = await query(
+      'SELECT nombre, sigla FROM careers WHERE id = $1',
+      [updatedUser.carrera_id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Foto de perfil actualizada exitosamente',
+      user: {
+        id: updatedUser.id,
+        nombre: updatedUser.nombre,
+        apellido: updatedUser.apellido,
+        email: updatedUser.email,
+        telefono: updatedUser.telefono,
+        dni: updatedUser.dni,
+        rol: updatedUser.rol,
+        carrera_id: updatedUser.carrera_id,
+        carrera_nombre: carreraResult.rows[0]?.nombre || 'Carrera no encontrada',
+        carrera_sigla: carreraResult.rows[0]?.sigla || '',
+        año_ingreso: updatedUser.año_ingreso,
+        estado_academico: updatedUser.estado_academico,
+        email_verificado: updatedUser.email_verificado,
+        fecha_creacion: updatedUser.fecha_creacion,
+        foto: updatedUser.foto
+      }
+    });
+
+  } catch (error) {
+    console.error('Error subiendo foto de perfil:', error);
+    
+    // Si hay un error, eliminar el archivo subido
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error eliminando archivo:', unlinkError);
+      }
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
+// Endpoint para obtener carreras disponibles
+app.get('/api/carreras', async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT id, nombre, sigla, codigo, descripcion, duracion_años FROM careers WHERE estado = $1 ORDER BY nombre',
+      ['active']
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error obteniendo carreras:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
+// Endpoint de prueba de conexión a la base de datos
+app.get('/api/db-status', async (req, res) => {
+  try {
+    const isConnected = await testConnection();
+    res.json({
+      success: true,
+      connected: isConnected,
+      message: isConnected ? 'Conexión a la base de datos exitosa' : 'Error de conexión a la base de datos'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      connected: false,
+      message: 'Error de conexión a la base de datos',
+      error: error.message
+    });
+  }
 });
 
 app.listen(PORT, () => {

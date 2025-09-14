@@ -79,6 +79,14 @@ public
 tmp/
 temp/
 
+# Temporary files
+*-temp.txt
+*-env.txt
+vercel-env.txt
+create-*.js
+migrate-*.js
+check-*.js
+
 # Editor directories and files
 .vscode/
 .idea/

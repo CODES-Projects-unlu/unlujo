@@ -8,11 +8,17 @@ import { NoticiasSection, NoticiasPage } from './modules/noticias';
 import { CarreraDetail } from './modules/carreras';
 import { Chatbot } from './modules/chatbot';
 import { SuperAdminDashboard } from './modules/super-admin';
+import { SocialFeed, UserProfile } from './modules/social';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthContainer from './components/AuthContainer';
+import GeneralProfile from './components/GeneralProfile';
 
 import { staticCarreras, staticNoticias } from './data/staticData';
 import './App.css';
 
-function App() {
+// Componente interno que usa el contexto de autenticación
+const AppContent = () => {
+  const { usuarioActual, loading: authLoading, isAuthenticated } = useAuth();
   const [carreras, setCarreras] = useState([]);
   const [noticias, setNoticias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -143,12 +149,20 @@ function App() {
     cargarDatos();
   }, []);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-        <div className="text-white text-xl">Cargando...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="text-white text-xl">Cargando...</div>
+        </div>
       </div>
     );
+  }
+
+  // Mostrar login/registro si no está autenticado
+  if (!isAuthenticated) {
+    return <AuthContainer />;
   }
 
   return (
@@ -187,11 +201,44 @@ function App() {
               <SuperAdminDashboard />
             } 
           />
+          <Route 
+            path="/social" 
+            element={
+              <SocialFeed 
+                usuarioActual={usuarioActual}
+              />
+            } 
+          />
+          <Route 
+            path="/perfil/:userId" 
+            element={
+              <UserProfile 
+                usuarioActual={usuarioActual}
+              />
+            } 
+          />
+          <Route 
+            path="/perfil-general/:userId" 
+            element={
+              <GeneralProfile 
+                usuarioActual={usuarioActual}
+              />
+            } 
+          />
         </Routes>
         <Chatbot />
         <Footer />
       </div>
     </Router>
+  );
+};
+
+// Componente principal que envuelve todo con el AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

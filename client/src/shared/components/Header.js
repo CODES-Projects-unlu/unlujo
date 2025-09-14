@@ -1,8 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { GraduationCap, Sparkles, Settings } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { GraduationCap, Sparkles, Settings, Users } from 'lucide-react';
+import UserSelector from '../../components/UserSelector';
+import { useAuth } from '../../contexts/AuthContext';
+import { isSuperAdmin } from '../../data/usersData';
 
 const Header = () => {
+  const { usuarioActual } = useAuth();
+  const location = useLocation();
+  
+  // Determinar si estamos en la página principal o en la red social
+  const isInSocial = location.pathname === '/social';
+  const isInMainPage = location.pathname === '/';
+  
   return (
     <header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,19 +41,38 @@ const Header = () => {
               <span className="text-sm text-gray-600 font-medium">En línea</span>
             </div>
             
-            {/* Enlace al Super Admin Dashboard */}
+            {/* Enlace dinámico entre Página Principal y Red Social */}
             <Link 
-              to="/super-admin"
-              className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-              title="Super Admin Dashboard"
+              to={isInSocial ? "/" : "/social"}
+              className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors duration-200"
+              title={isInSocial ? "Página Principal" : "UNLujo Community"}
             >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Admin</span>
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {isInSocial ? "Inicio" : "Social"}
+              </span>
             </Link>
+            
+            {/* Enlace al Super Admin Dashboard - Solo visible para Super Admin */}
+            {usuarioActual && isSuperAdmin(usuarioActual) && (
+              <Link 
+                to="/super-admin"
+                className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                title="Super Admin Dashboard"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
             
             <div className="md:hidden">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </div>
+          </div>
+          
+          {/* Selector de usuarios */}
+          <div className="ml-4">
+            <UserSelector />
           </div>
         </div>
       </div>

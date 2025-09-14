@@ -1476,6 +1476,67 @@ app.get('/api/db-status', async (req, res) => {
   }
 });
 
+// Endpoint temporal para crear usuario de prueba
+app.post('/api/create-test-user', async (req, res) => {
+  try {
+    console.log('🧪 Creando usuario de prueba...');
+    
+    // Verificar si ya existe el usuario
+    const existingUser = await query(
+      'SELECT id FROM users WHERE email = $1',
+      ['rizzofs@gmail.com']
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return res.json({
+        success: true,
+        message: 'Usuario de prueba ya existe',
+        user: { email: 'rizzofs@gmail.com', password: 'Thvafi#03' }
+      });
+    }
+    
+    // Crear usuario de prueba
+    const salt = require('crypto').randomBytes(32).toString('hex');
+    const passwordHash = await hashPassword('Thvafi#03', salt);
+    
+    const result = await query(
+      `INSERT INTO users (nombre, apellido, email, telefono, dni, carrera_id, año_ingreso, password_hash, salt, rol, estado, email_verificado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, nombre, apellido, email, rol, carrera_id, email_verificado, fecha_creacion`,
+      ['Rizzo', 'Test', 'rizzofs@gmail.com', '1234567890', '12345678', 1, 2024, passwordHash, salt, 'estudiante', 'Activo', true]
+    );
+    
+    const newUser = result.rows[0];
+    
+    res.json({
+      success: true,
+      message: 'Usuario de prueba creado exitosamente',
+      user: {
+        id: newUser.id,
+        nombre: newUser.nombre,
+        apellido: newUser.apellido,
+        email: newUser.email,
+        rol: newUser.rol,
+        carrera_id: newUser.carrera_id,
+        email_verificado: newUser.email_verificado,
+        fecha_creacion: newUser.fecha_creacion
+      },
+      credentials: {
+        email: 'rizzofs@gmail.com',
+        password: 'Thvafi#03'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error creando usuario de prueba:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: error.message
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`
 🚀 UNLujo API Server iniciado!

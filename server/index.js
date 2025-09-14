@@ -75,9 +75,41 @@ app.use(cors({
     'https://unlujo-rizzofs-projects.vercel.app',
     'https://unlujo-git-master-rizzofs-projects.vercel.app'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
+// Middleware para manejar peticiones OPTIONS (preflight)
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 app.use(express.json());
+
+// Middleware adicional para headers CORS en todas las respuestas
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000',
+    'https://unlujo.vercel.app',
+    'https://unlujo-rizzofs-projects.vercel.app',
+    'https://unlujo-git-master-rizzofs-projects.vercel.app'
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  next();
+});
 
 // Endpoint específico para servir imágenes de perfil
 app.get('/api/uploads/profiles/:filename', (req, res) => {
